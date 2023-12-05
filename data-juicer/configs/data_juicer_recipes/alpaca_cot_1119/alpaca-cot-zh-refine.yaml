@@ -1,0 +1,53 @@
+# global parameters
+project_name: 'Data-Juicer-recipes-alpaca-cot-zh'
+dataset_path: '/data/embedding/competition_kit/data/raw_data/raw_data_zh.jsonl'  # path to your dataset directory or file
+export_path: '/data/embedding/competition_kit/data/juice_data/raw_data_zh.jsonl'
+
+np: 164  # number of subprocess to process your dataset
+open_tracer: true
+
+# process schedule
+# a list of several process operators with their arguments
+process:
+  - clean_email_mapper:
+  - clean_links_mapper:
+  - fix_unicode_mapper:
+  - punctuation_normalization_mapper:
+  - whitespace_normalization_mapper:
+  
+  - document_deduplicator: # 16957516
+      lowercase: true # whether to convert text to lower case
+      ignore_non_character: true
+
+  - alphanumeric_filter: # 16957388
+      tokenization: false
+      min_ratio: 0.10  
+  - character_repetition_filter: # 16956845
+      rep_len: 10
+      max_ratio: 0.6  
+  - flagged_words_filter: # 16954629
+      lang: zh
+      tokenization: true
+      use_words_aug: true
+      max_ratio: 0.017
+  - maximum_line_length_filter: # 104575811
+      min_len: 20
+  - text_length_filter: # 104573711
+      min_len: 30 
+      max_len: 2048
+  - special_characters_filter:
+      min_ratio: 0.232 # 3sigma
+      max_ratio: 0.7 
+  - word_repetition_filter:
+      lang: zh
+      tokenization: true
+      rep_len: 10
+      max_ratio: 0.328  # 3sigma -- 2125070
+
+  - document_simhash_deduplicator: # 9873214
+      tokenization: character
+      window_size: 4  # small window size for short texts
+      lowercase: true
+      ignore_pattern: '\p{P}'
+      num_blocks: 10
+      hamming_distance: 8  # larger hamming distance threshold for short texts
